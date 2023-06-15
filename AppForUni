@@ -1,0 +1,1440 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.Linq;
+using System.Reflection.Emit;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Xml;
+
+namespace AppForUni
+{
+    public partial class PersonalCabinet : Form
+    {
+        private string userID;
+        private SqlConnection sqlConnection;
+        public PersonalCabinet(string userID, SqlConnection connection)
+        {
+            InitializeComponent();
+            this.userID = userID;
+            this.sqlConnection = connection;
+        }
+
+        private void PersonalCabinet_Load(object sender, EventArgs e)
+        {
+            // Отримати дані користувача з бази даних
+            string query = "SELECT * FROM userDB WHERE id_key = @UserID";
+            SqlCommand command = new SqlCommand(query, sqlConnection);
+            command.Parameters.AddWithValue("@UserID", userID);
+
+            SqlDataReader reader = command.ExecuteReader();
+            if (reader.Read())
+            {
+                // Отримати дані зчитані з бази даних
+                string imagePath = reader["picture"].ToString();  // Припустимо, що зображення зберігається як шлях до файлу
+                string userName = reader["Name"].ToString();
+                string gasData = reader["gas"].ToString();
+                string elecData = reader["elec"].ToString();
+                string waterData = reader["water"].ToString();
+                string gasCost = reader["gas_pay"].ToString();
+                string elecCost = reader["elec_pay"].ToString();
+                string waterCost = reader["water_pay"].ToString();
+                string lastCalculation = reader["Date"].ToString();
+
+                // Відображення отриманих даних у відповідних елементах на формі
+                pictureBoxim.Image = Image.FromFile(imagePath);
+                nametag.Text = userName;
+                usegas.Text = "Показники лічильника газу: " + gasData;
+                useelec.Text = "Показники лічильника електроенергії: " + elecData;
+                usewater.Text = "Показники лічильника води: " + waterData;
+                gascost.Text = "Оплата за газ: " + gasCost + " грн.";
+                eleccost.Text = "Оплата за електрику: " + elecCost + " грн.";
+                watercost.Text = "Оплата за воду: " + waterCost + " грн.";
+                date.Text = "Останній розрахунок: " + lastCalculation;
+            
+
+        }
+
+            reader.Close();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // Створення та відображення форми "Changing_indicators"
+            Changing_indicators changingIndicatorsForm = new Changing_indicators(userID, sqlConnection);
+            changingIndicatorsForm.ShowDialog();
+
+            // Оновлення форми особистого кабінету після закриття форми "Changing_indicators"
+            PersonalCabinet_Load(sender, e);
+
+        }
+
+        private void changeimg_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Image Files (*.png, *.jpg, *.jpeg, *.gif)|*.png;*.jpg;*.jpeg;*.gif";
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string imagePath = openFileDialog.FileName;
+
+                try
+                {
+                    // Завантаження зображення з файлу
+                    Image image = Image.FromFile(imagePath);
+
+                    // Встановлення зображення в PictureBox
+                    pictureBoxim.Image = image;
+
+                    // Оновлення розташування зображення в базі даних
+                    string query = "UPDATE userDB SET picture = @ImagePath WHERE id_key = @UserID";
+                    SqlCommand command = new SqlCommand(query, sqlConnection);
+                    command.Parameters.AddWithValue("@ImagePath", imagePath);
+                    command.Parameters.AddWithValue("@UserID", userID);
+
+                    command.ExecuteNonQuery();
+
+                    MessageBox.Show("Зображення успішно змінено і збережено в базі даних!");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Сталася помилка при зміні зображення: " + ex.Message);
+                }
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            SingIn loginForm = new SingIn();
+            loginForm.Show();
+            this.Close();
+        }
+
+        private void useelec_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void PersonalCabinet_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Application.Exit();
+        }
+    }
+}
+
+namespace AppForUni
+{
+    partial class PersonalCabinet
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.pictureBoxim = new System.Windows.Forms.PictureBox();
+            this.usegas = new System.Windows.Forms.Label();
+            this.useelec = new System.Windows.Forms.Label();
+            this.usewater = new System.Windows.Forms.Label();
+            this.nametag = new System.Windows.Forms.Label();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
+            this.gascost = new System.Windows.Forms.Label();
+            this.watercost = new System.Windows.Forms.Label();
+            this.eleccost = new System.Windows.Forms.Label();
+            this.button1 = new System.Windows.Forms.Button();
+            this.changeimg = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
+            this.date = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxim)).BeginInit();
+            this.panel1.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // pictureBoxim
+            // 
+            this.pictureBoxim.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pictureBoxim.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.pictureBoxim.Image = global::AppForUni.Properties.Resources._1669367068_2_1_1_;
+            this.pictureBoxim.Location = new System.Drawing.Point(0, 0);
+            this.pictureBoxim.Name = "pictureBoxim";
+            this.pictureBoxim.Size = new System.Drawing.Size(198, 195);
+            this.pictureBoxim.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBoxim.TabIndex = 0;
+            this.pictureBoxim.TabStop = false;
+            // 
+            // usegas
+            // 
+            this.usegas.AutoSize = true;
+            this.usegas.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.usegas.Location = new System.Drawing.Point(35, 101);
+            this.usegas.Name = "usegas";
+            this.usegas.Size = new System.Drawing.Size(47, 25);
+            this.usegas.TabIndex = 1;
+            this.usegas.Text = "Газ";
+            // 
+            // useelec
+            // 
+            this.useelec.AutoSize = true;
+            this.useelec.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.useelec.Location = new System.Drawing.Point(35, 133);
+            this.useelec.Name = "useelec";
+            this.useelec.Size = new System.Drawing.Size(118, 25);
+            this.useelec.TabIndex = 2;
+            this.useelec.Text = "Електрика";
+            this.useelec.Click += new System.EventHandler(this.useelec_Click);
+            // 
+            // usewater
+            // 
+            this.usewater.AutoSize = true;
+            this.usewater.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.usewater.Location = new System.Drawing.Point(35, 166);
+            this.usewater.Name = "usewater";
+            this.usewater.Size = new System.Drawing.Size(62, 25);
+            this.usewater.TabIndex = 3;
+            this.usewater.Text = "Вода";
+            // 
+            // nametag
+            // 
+            this.nametag.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.nametag.AutoSize = true;
+            this.nametag.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.nametag.Location = new System.Drawing.Point(64, 198);
+            this.nametag.Name = "nametag";
+            this.nametag.Size = new System.Drawing.Size(47, 25);
+            this.nametag.TabIndex = 4;
+            this.nametag.Text = "Ім\'я";
+            this.nametag.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // panel1
+            // 
+            this.panel1.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.panel1.Controls.Add(this.pictureBoxim);
+            this.panel1.Controls.Add(this.nametag);
+            this.panel1.Location = new System.Drawing.Point(532, 64);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(198, 223);
+            this.panel1.TabIndex = 5;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label1.Location = new System.Drawing.Point(35, 269);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(115, 25);
+            this.label1.TabIndex = 6;
+            this.label1.Text = "До сплати";
+            // 
+            // gascost
+            // 
+            this.gascost.AutoSize = true;
+            this.gascost.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.gascost.Location = new System.Drawing.Point(35, 309);
+            this.gascost.Name = "gascost";
+            this.gascost.Size = new System.Drawing.Size(152, 25);
+            this.gascost.TabIndex = 7;
+            this.gascost.Text = "Оплата за газ";
+            // 
+            // watercost
+            // 
+            this.watercost.AutoSize = true;
+            this.watercost.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.watercost.Location = new System.Drawing.Point(35, 365);
+            this.watercost.Name = "watercost";
+            this.watercost.Size = new System.Drawing.Size(167, 25);
+            this.watercost.TabIndex = 8;
+            this.watercost.Text = "Оплата за воду";
+            // 
+            // eleccost
+            // 
+            this.eleccost.AutoSize = true;
+            this.eleccost.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.eleccost.Location = new System.Drawing.Point(35, 337);
+            this.eleccost.Name = "eleccost";
+            this.eleccost.Size = new System.Drawing.Size(224, 25);
+            this.eleccost.TabIndex = 9;
+            this.eleccost.Text = "Оплата за електрику";
+            // 
+            // button1
+            // 
+            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.button1.Location = new System.Drawing.Point(539, 347);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(191, 48);
+            this.button1.TabIndex = 10;
+            this.button1.Text = "Внести нові показники";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // changeimg
+            // 
+            this.changeimg.Location = new System.Drawing.Point(532, 290);
+            this.changeimg.Name = "changeimg";
+            this.changeimg.Size = new System.Drawing.Size(198, 23);
+            this.changeimg.TabIndex = 11;
+            this.changeimg.Text = "Змінити картинку";
+            this.changeimg.UseVisualStyleBackColor = true;
+            this.changeimg.Click += new System.EventHandler(this.changeimg_Click);
+            // 
+            // button2
+            // 
+            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.button2.Location = new System.Drawing.Point(7, 12);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(157, 32);
+            this.button2.TabIndex = 12;
+            this.button2.Text = "Змінити користувача";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // date
+            // 
+            this.date.AutoSize = true;
+            this.date.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.date.Location = new System.Drawing.Point(488, 9);
+            this.date.Name = "date";
+            this.date.Size = new System.Drawing.Size(39, 16);
+            this.date.TabIndex = 13;
+            this.date.Text = "Дата";
+            // 
+            // PersonalCabinet
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackgroundImage = global::AppForUni.Properties.Resources._1669367068_2_1_1_;
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.date);
+            this.Controls.Add(this.button2);
+            this.Controls.Add(this.changeimg);
+            this.Controls.Add(this.button1);
+            this.Controls.Add(this.eleccost);
+            this.Controls.Add(this.watercost);
+            this.Controls.Add(this.gascost);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.panel1);
+            this.Controls.Add(this.usewater);
+            this.Controls.Add(this.useelec);
+            this.Controls.Add(this.usegas);
+            this.Name = "PersonalCabinet";
+            this.Text = "PersonalCabinet";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.PersonalCabinet_FormClosing);
+            this.Load += new System.EventHandler(this.PersonalCabinet_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxim)).EndInit();
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.PictureBox pictureBoxim;
+        private System.Windows.Forms.Label usegas;
+        private System.Windows.Forms.Label useelec;
+        private System.Windows.Forms.Label usewater;
+        private System.Windows.Forms.Label nametag;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label gascost;
+        private System.Windows.Forms.Label watercost;
+        private System.Windows.Forms.Label eleccost;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button changeimg;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Label date;
+    }
+}
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+</root>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace AppForUni
+{
+    internal static class Program
+    {
+        /// <summary>
+        /// Главная точка входа для приложения.
+        /// </summary>
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new SingIn());
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Configuration;
+using System.Data.SqlClient;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+
+namespace AppForUni
+{
+    public partial class SingIn : Form
+    {
+        public SqlConnection sqlConnection = null;
+        public SingIn()
+        {
+            InitializeComponent();
+        }
+
+        private void SingIn_Load(object sender, EventArgs e)
+        {
+            sqlConnection = new SqlConnection(ConfigurationManager.ConnectionStrings["ProgDB"].ConnectionString);
+            sqlConnection.Open();
+        }
+        public SqlConnection GetSqlConnection()
+        {
+            return sqlConnection;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // Отримуємо інформацію з бази даних про користувача з введеним іменем
+            string userName = userID.Text;
+            string pass = password.Text;
+
+            string query = "SELECT * FROM userDB WHERE id_key = @UserID AND Password = @Password";
+            SqlCommand command = new SqlCommand(query, sqlConnection);
+            command.Parameters.AddWithValue("@UserID", userName);
+            command.Parameters.AddWithValue("@Password", pass);
+
+            SqlDataReader reader = command.ExecuteReader();
+            if (reader.Read())
+            {
+                // Вхід успішний, закриваємо поточну форму та відкриваємо форму особистого кабінету
+                reader.Close();
+                this.Hide();
+
+                PersonalCabinet personalCabinetForm = new PersonalCabinet(userName, sqlConnection);
+                personalCabinetForm.Show();
+            }
+            else
+            {
+                MessageBox.Show("Неправильне ім'я користувача або пароль");
+            }
+        }
+
+        private void userID_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void userID_Enter_1(object sender, EventArgs e)
+        {
+            // Перевірка, чи текст у TextBox є текстом-підказкою
+            if (userID.Text == "Введіть унікальний код...")
+            {
+                // Очистити текст у TextBox та змінити кольори тексту на чорний
+                userID.Text = "";
+                userID.ForeColor = Color.Black;
+            }
+        }
+
+        private void userID_Leave_1(object sender, EventArgs e)
+        {
+            // Перевірка, чи TextBox порожній
+            if (string.IsNullOrWhiteSpace(userID.Text))
+            {
+                // Встановлення тексту-підказки та зміна кольору тексту на сірий
+                userID.Text = "Введіть унікальний код...";
+                userID.ForeColor = Color.Gray;
+            }
+        }
+
+        private void password_Enter(object sender, EventArgs e)
+        {
+            if (password.Text == "Уведіть пароль...")
+            {
+                // Очистити текст у TextBox та змінити кольори тексту на чорний
+                password.Text = "";
+                password.ForeColor = Color.Black;
+            }
+        }
+
+        private void password_Leave(object sender, EventArgs e)
+        {
+            // Перевірка, чи TextBox порожній
+            if (string.IsNullOrWhiteSpace(password.Text))
+            {
+                // Встановлення тексту-підказки та зміна кольору тексту на сірий
+                password.Text = "Уведіть пароль...";
+                password.ForeColor = Color.Gray;
+            }
+        }
+    }
+}
+
+namespace AppForUni
+{
+    partial class SingIn
+    {
+        /// <summary>
+        /// Обязательная переменная конструктора.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Освободить все используемые ресурсы.
+        /// </summary>
+        /// <param name="disposing">истинно, если управляемый ресурс должен быть удален; иначе ложно.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Код, автоматически созданный конструктором форм Windows
+
+        /// <summary>
+        /// Требуемый метод для поддержки конструктора — не изменяйте 
+        /// содержимое этого метода с помощью редактора кода.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.button1 = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.password = new System.Windows.Forms.TextBox();
+            this.userID = new System.Windows.Forms.TextBox();
+            this.SuspendLayout();
+            // 
+            // button1
+            // 
+            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.button1.Location = new System.Drawing.Point(324, 264);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(117, 49);
+            this.button1.TabIndex = 0;
+            this.button1.Text = "Увійти";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label1.Location = new System.Drawing.Point(358, 117);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(48, 24);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "Вхід";
+            // 
+            // password
+            // 
+            this.password.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.password.ForeColor = System.Drawing.Color.Gray;
+            this.password.Location = new System.Drawing.Point(281, 196);
+            this.password.Multiline = true;
+            this.password.Name = "password";
+            this.password.Size = new System.Drawing.Size(203, 29);
+            this.password.TabIndex = 3;
+            this.password.Text = "Уведіть пароль...";
+            this.password.Enter += new System.EventHandler(this.password_Enter);
+            this.password.Leave += new System.EventHandler(this.password_Leave);
+            // 
+            // userID
+            // 
+            this.userID.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.userID.ForeColor = System.Drawing.Color.Gray;
+            this.userID.Location = new System.Drawing.Point(281, 157);
+            this.userID.Multiline = true;
+            this.userID.Name = "userID";
+            this.userID.Size = new System.Drawing.Size(203, 33);
+            this.userID.TabIndex = 4;
+            this.userID.Text = "Введіть унікальний код...";
+            this.userID.TextChanged += new System.EventHandler(this.userID_TextChanged);
+            this.userID.Enter += new System.EventHandler(this.userID_Enter_1);
+            this.userID.Leave += new System.EventHandler(this.userID_Leave_1);
+            // 
+            // SingIn
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackgroundImage = global::AppForUni.Properties.Resources._1669367068_2_1_1_;
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.userID);
+            this.Controls.Add(this.password);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.button1);
+            this.Name = "SingIn";
+            this.Text = "Sing In";
+            this.Load += new System.EventHandler(this.SingIn_Load);
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox password;
+        private System.Windows.Forms.TextBox userID;
+    }
+}
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+</root>
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+    <startup> 
+        <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.8.1" />
+    </startup>
+	<connectionStrings>
+		<add name="ProgDB" connectionString="Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\igoro\source\repos\AppForUni\DBForProg.mdf;Integrated Security=True"/>
+	</connectionStrings>
+</configuration>
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{6EF6BECB-61C3-4558-8ECB-B40B39B86FEF}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>AppForUni</RootNamespace>
+    <AssemblyName>AppForUni</AssemblyName>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>C:\Users\igoro\OneDrive\Рабочий стол\Prog\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>3</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>6E181093A247017D95418FED01670248BA1045C9</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>AppForUni_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>true</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Changing indicators.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Changing indicators.Designer.cs">
+      <DependentUpon>Changing indicators.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PersonalCabinet.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PersonalCabinet.Designer.cs">
+      <DependentUpon>PersonalCabinet.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SingIn.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SingIn.Designer.cs">
+      <DependentUpon>SingIn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Changing indicators.resx">
+      <DependentUpon>Changing indicators.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PersonalCabinet.resx">
+      <DependentUpon>PersonalCabinet.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <EmbeddedResource Include="SingIn.resx">
+      <DependentUpon>SingIn.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="AppForUni_TemporaryKey.pfx" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\1669367068_2-1[1].jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="DBForProg.mdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DBForProg_log.ldf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <DependentUpon>DBForProg.mdf</DependentUpon>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.8.1">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.8.1 %28x86 и x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PublishUrlHistory>C:\Users\igoro\OneDrive\Рабочий стол\Prog\|publish\</PublishUrlHistory>
+    <InstallUrlHistory />
+    <SupportUrlHistory />
+    <UpdateUrlHistory />
+    <BootstrapperUrlHistory />
+    <ErrorReportUrlHistory />
+    <FallbackCulture>ru-RU</FallbackCulture>
+    <VerifyUploadedFiles>false</VerifyUploadedFiles>
+  </PropertyGroup>
+  <PropertyGroup>
+    <EnableSecurityDebugging>false</EnableSecurityDebugging>
+  </PropertyGroup>
+</Project>
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33712.159
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppForUni", "AppForUni.csproj", "{6EF6BECB-61C3-4558-8ECB-B40B39B86FEF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6EF6BECB-61C3-4558-8ECB-B40B39B86FEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EF6BECB-61C3-4558-8ECB-B40B39B86FEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EF6BECB-61C3-4558-8ECB-B40B39B86FEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EF6BECB-61C3-4558-8ECB-B40B39B86FEF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {54CEF830-6D68-4EB0-9B3B-24755ACA200B}
+	EndGlobalSection
+EndGlobal
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace AppForUni
+{
+    public partial class Changing_indicators : Form
+    {
+        private string userID;
+        private SqlConnection sqlConnection;
+        public Changing_indicators(string userID, SqlConnection connection)
+        {
+            InitializeComponent();
+            this.userID = userID;
+            this.sqlConnection = connection;
+        }
+
+        private void Changing_indicators_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // Отримання введених користувачем даних з лічильників
+            double gasUsage;
+            double elecUsage;
+            double waterUsage;
+
+            if (!double.TryParse(txtGasUsage.Text, out gasUsage) ||
+                !double.TryParse(txtElecUsage.Text, out elecUsage) ||
+                !double.TryParse(txtWaterUsage.Text, out waterUsage))
+            {
+                MessageBox.Show("Невірний формат введених даних. Будь ласка, переконайтесь, що ви вводите числові значення.");
+                return;
+            }
+
+            // Отримання даних користувача з бази даних
+            string query = "SELECT * FROM userDB WHERE id_key = @UserID";
+            SqlCommand command = new SqlCommand(query, sqlConnection);
+            command.Parameters.AddWithValue("@UserID", userID);
+
+            SqlDataReader reader = command.ExecuteReader();
+            if (reader.Read())
+            {
+                try
+                {
+                    double gasData = double.Parse(reader["gas"].ToString());
+                    double elecData = double.Parse(reader["elec"].ToString());
+                    double waterData = double.Parse(reader["water"].ToString());
+                    double gasPrice = 7.99; // Ціна за одиницю газу
+                    double elecPrice = 1.44; // Ціна за одиницю електрики
+                    double waterPrice = 22.24; // Ціна за одиницю води
+
+                    if (gasData > gasUsage)
+                    {
+                        MessageBox.Show("Невірне значення показника газу");
+                    }
+                    else if (elecData > elecUsage)
+                    {
+                        MessageBox.Show("Невірне значення показника електроенергії");
+                    }
+                    else if (waterData > waterUsage)
+                    {
+                        MessageBox.Show("Невірне значення показника води");
+                    }
+                    else
+                    {
+                        double gasPay = (gasUsage - gasData) * gasPrice;
+                        double elecPay = (elecUsage - elecData) * elecPrice;
+                        double waterPay = (waterUsage - waterData) * waterPrice;
+
+                        reader.Close();
+                        query = "UPDATE userDB SET gas = @GasData, elec = @ElecData, water = @WaterData, gas_pay = @GasPay, elec_pay = @ElecPay, water_pay = @WaterPay, Date = @LastCalculation WHERE id_key = @UserID";
+                        command = new SqlCommand(query, sqlConnection);
+                        command.Parameters.AddWithValue("@GasData", gasUsage);
+                        command.Parameters.AddWithValue("@ElecData", elecUsage);
+                        command.Parameters.AddWithValue("@WaterData", waterUsage);
+                        command.Parameters.AddWithValue("@GasPay", gasPay);
+                        command.Parameters.AddWithValue("@ElecPay", elecPay);
+                        command.Parameters.AddWithValue("@WaterPay", waterPay);
+                        command.Parameters.AddWithValue("@LastCalculation", DateTime.Now);
+                        command.Parameters.AddWithValue("@UserID", userID);
+
+                        command.ExecuteNonQuery();
+
+                        MessageBox.Show("Дані успішно збережено!");
+
+                        // Оновлення форми особистого кабінету
+                        this.Close();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Сталася помилка при обробці даних: " + ex.Message);
+                }
+                finally
+                {
+                    reader.Close();
+                }
+            }
+        }
+    }
+    
+}
+
+namespace AppForUni
+{
+    partial class Changing_indicators
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.button1 = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.txtGasUsage = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.txtWaterUsage = new System.Windows.Forms.TextBox();
+            this.txtElecUsage = new System.Windows.Forms.TextBox();
+            this.SuspendLayout();
+            // 
+            // button1
+            // 
+            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.button1.Location = new System.Drawing.Point(558, 329);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(156, 59);
+            this.button1.TabIndex = 0;
+            this.button1.Text = "Застосувати";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label1.Location = new System.Drawing.Point(136, 74);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(362, 25);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "Введіть показники лічильника газу";
+            // 
+            // txtGasUsage
+            // 
+            this.txtGasUsage.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.txtGasUsage.Location = new System.Drawing.Point(136, 111);
+            this.txtGasUsage.Multiline = true;
+            this.txtGasUsage.Name = "txtGasUsage";
+            this.txtGasUsage.Size = new System.Drawing.Size(125, 31);
+            this.txtGasUsage.TabIndex = 2;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label2.Location = new System.Drawing.Point(136, 154);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(424, 25);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "Введіть показники лічильника електрики";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label3.Location = new System.Drawing.Point(136, 234);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(367, 25);
+            this.label3.TabIndex = 4;
+            this.label3.Text = "Введіть показники лічильника води";
+            // 
+            // txtWaterUsage
+            // 
+            this.txtWaterUsage.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.txtWaterUsage.Location = new System.Drawing.Point(136, 271);
+            this.txtWaterUsage.Multiline = true;
+            this.txtWaterUsage.Name = "txtWaterUsage";
+            this.txtWaterUsage.Size = new System.Drawing.Size(125, 31);
+            this.txtWaterUsage.TabIndex = 5;
+            // 
+            // txtElecUsage
+            // 
+            this.txtElecUsage.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.txtElecUsage.Location = new System.Drawing.Point(136, 191);
+            this.txtElecUsage.Multiline = true;
+            this.txtElecUsage.Name = "txtElecUsage";
+            this.txtElecUsage.Size = new System.Drawing.Size(125, 31);
+            this.txtElecUsage.TabIndex = 6;
+            // 
+            // Changing_indicators
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackgroundImage = global::AppForUni.Properties.Resources._1669367068_2_1_1_;
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.txtElecUsage);
+            this.Controls.Add(this.txtWaterUsage);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.txtGasUsage);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.button1);
+            this.Name = "Changing_indicators";
+            this.Text = "Changing_indicators";
+            this.Load += new System.EventHandler(this.Changing_indicators_Load);
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox txtGasUsage;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txtWaterUsage;
+        private System.Windows.Forms.TextBox txtElecUsage;
+    }
+}
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+</root>
